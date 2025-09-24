@@ -8,6 +8,8 @@ const config: PostgresConnectionOptions = {
   password: '1234',
   database: 'blog',
   logging: true,
+  entities: [__dirname + '/**/*.entity{.ts,.js}'],
+  synchronize: true, // not useful on production
 };
 
 export default config;
