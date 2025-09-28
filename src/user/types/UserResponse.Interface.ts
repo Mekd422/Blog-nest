@@ -1,5 +1,5 @@
-import { IUser } from "@/user/types/user.type";
+import { IUser } from '@/user/types/user.type';
 
 export interface IUserResponse {
-    user : IUser & {token: String}
+  user: IUser & { token: string };
 }
