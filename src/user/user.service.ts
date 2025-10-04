@@ -5,7 +5,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { sign } from 'jsonwebtoken';
-import {compare} from 'bcrypt';
+import {compare, hash} from 'bcrypt';
 import * as dotenv from 'dotenv';
 import { LoginDto } from '@/user/dto/loginUser.dto';
 dotenv.config();
@@ -33,6 +33,8 @@ export class UserService {
     if (UserByEmail || UserByUsername) {
       throw new HttpException('User already exists', 422);
     }
+
+    newUser.password = await hash(createUserDto.password, 10);
 
     const SavedUser = await this.userRepository.save(newUser);
 
@@ -64,6 +66,14 @@ export class UserService {
     return user;
   }
 
+  async findById(id: number): Promise<UserEntity> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+    return user;
+  }
+
   generateToken(user: UserEntity): string {
     const jwtSecret = process.env.JWT_SECRET_KEY;
 
@@ -86,9 +96,14 @@ export class UserService {
   }
 
   generateUserResponse(user: UserEntity): IUserResponse {
+    const { password, ...userWithoutPassword } = user;
+
+    if(!user.id){
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
     return {
       user: {
-        ...user,
+        ...userWithoutPassword,
         token: this.generateToken(user),
       },
     };
